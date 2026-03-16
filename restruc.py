@@ -107,7 +107,7 @@ for depto in departamentos:
         
         # ========== TÍTULO PRINCIPAL NA LINHA CORRETA ==========
         ws.merge_cells(f'A{linha_titulo}:E{linha_titulo}')
-        celula_titulo = ws.cell(linha_titulo, 1, "CADASTRO DE REDE")
+        celula_titulo = ws.cell(linha_titulo, 1, "Cadastro de Rede")
         celula_titulo.font = titulo_font
         celula_titulo.alignment = Alignment(horizontal='center', vertical='center')
         celula_titulo.fill = cinza_claro
@@ -118,7 +118,7 @@ for depto in departamentos:
         
         # ========== DADOS DO RESPONSÁVEL ==========
         ws.merge_cells(f'A{linha}:E{linha}')
-        celula_subtitulo = ws.cell(linha, 1, "DADOS DO RESPONSÁVEL DO SETOR")
+        celula_subtitulo = ws.cell(linha, 1, "Dados do Responsável do Setor")
         celula_subtitulo.font = subtitulo_font
         celula_subtitulo.alignment = Alignment(horizontal='center')
         celula_subtitulo.fill = cinza_escuro
@@ -156,7 +156,7 @@ for depto in departamentos:
         
         # ========== TABELA DE SERVIDORES ==========
         ws.merge_cells(f'A{linha}:E{linha}')
-        celula_subtitulo = ws.cell(linha, 1, "DADOS DOS SERVIDORES")
+        celula_subtitulo = ws.cell(linha, 1, "Dados dos Servidores")
         celula_subtitulo.font = subtitulo_font
         celula_subtitulo.alignment = Alignment(horizontal='center')
         celula_subtitulo.fill = cinza_escuro
