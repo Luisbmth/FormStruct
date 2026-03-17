@@ -1,128 +1,170 @@
 import pandas as pd
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-from openpyxl.drawing.image import Image
 import os
+from PIL import Image as PILImage
 
-# arquivo exportado do Forms
+# ========== VERIFICAR ARQUIVOS NA PASTA ==========
+print("📁 Arquivos encontrados na pasta:")
+for arquivo in os.listdir('.'):
+    print(f"   - {arquivo}")
+
+# ========== NOME DO ARQUIVO (COM ACENTO) ==========
 arquivo = "Dados do Responsável do Setor.xlsx"
 
-# ler planilha
+if not os.path.exists(arquivo):
+    print(f"\n❌ ERRO: Arquivo '{arquivo}' não encontrado!")
+    exit()
+
+# ========== LER PLANILHA ==========
+print(f"\n✅ Arquivo encontrado: {arquivo}")
 df = pd.read_excel(arquivo)
 
-# MOSTRAR COLUNAS PARA CONFIRMAR
-print("Colunas encontradas:")
+# MOSTRAR COLUNAS
+print("\nColunas encontradas:")
 for col in df.columns:
     print(f"  - '{col}'")
 
-# Criar novo workbook
-wb = Workbook()
+# ========== CRIAR WORKBOOK COM XLSXWRITER ==========
+writer = pd.ExcelWriter('cadastro_rede_tamanho_fixo.xlsx', engine='xlsxwriter')
+workbook = writer.book
 
-# Remover a planilha padrão (será criada depois)
-wb.remove(wb.active)
+# ========== ESTILOS ==========
+titulo_format = workbook.add_format({
+    'font_name': 'Calibri',
+    'font_size': 24,
+    'bold': True,
+    'align': 'center',
+    'valign': 'vcenter',
+    'bg_color': '#F2F2F2',
+    'border': 0
+})
 
-# ========== ESTILOS COM CALIBRI ==========
-# Cores
-cinza_claro = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
-cinza_escuro = PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid")
-branco = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+subtitulo_format = workbook.add_format({
+    'font_name': 'Calibri',
+    'font_size': 11,
+    'bold': True,
+    'align': 'center',
+    'valign': 'vcenter',
+    'bg_color': '#D9D9D9',
+    'border': 1,
+    'border_color': '#000000'
+})
 
-# Fontes Calibri
-titulo_font = Font(name='Calibri', size=24, bold=True)
-subtitulo_font = Font(name='Calibri', size=11, bold=True)
-bold_font = Font(name='Calibri', size=11, bold=True)
-normal_font = Font(name='Calibri', size=11)
+cabecalho_format = workbook.add_format({
+    'font_name': 'Calibri',
+    'font_size': 11,
+    'bold': True,
+    'align': 'center',
+    'valign': 'vcenter',
+    'bg_color': '#F2F2F2',
+    'border': 1,
+    'border_color': '#000000'
+})
 
-# Bordas completas
-borda_completa = Border(
-    left=Side(style='thin'),
-    right=Side(style='thin'),
-    top=Side(style='thin'),
-    bottom=Side(style='thin')
-)
+campo_format = workbook.add_format({
+    'font_name': 'Calibri',
+    'font_size': 11,
+    'bold': True,
+    'align': 'left',
+    'valign': 'vcenter',
+    'bg_color': '#FFFFFF',
+    'border': 1,
+    'border_color': '#000000'
+})
 
-# Sem bordas
-sem_borda = Border(
-    left=Side(style=None),
-    right=Side(style=None),
-    top=Side(style=None),
-    bottom=Side(style=None)
-)
+valor_format = workbook.add_format({
+    'font_name': 'Calibri',
+    'font_size': 11,
+    'align': 'left',
+    'valign': 'vcenter',
+    'bg_color': '#FFFFFF',
+    'border': 1,
+    'border_color': '#000000'
+})
 
 # ========== LOGO ==========
-caminho_logo = "logo_prefeitura.png"
+caminho_logo = "niteroi.png"
 logo_existe = os.path.exists(caminho_logo)
 
-if not logo_existe:
-    print("⚠️ Arquivo da logo não encontrado. As abas serão criadas sem logo.")
+if logo_existe:
+    with PILImage.open(caminho_logo) as img:
+        largura_original, altura_original = img.size
+        print(f"\n📏 Tamanho original da imagem: {largura_original}x{altura_original}")
 
-# ========== CRIAR UMA ABA PARA CADA DEPARTAMENTO ==========
+# ========== CRIAR ABAS ==========
 departamentos = df['Departamento'].unique()
-
-print(f"\n📊 Departamentos encontrados: {list(departamentos)}")
+print(f"\n📊 Departamentos: {list(departamentos)}")
 
 for depto in departamentos:
-    # Filtrar dados do departamento
     dados_depto = df[df['Departamento'] == depto].copy()
-    
-    # Criar nome da aba (limitar a 31 caracteres)
     nome_aba = str(depto)[:31]
-    ws = wb.create_sheet(title=nome_aba)
     
-    print(f"✅ Criando aba: {nome_aba} - {len(dados_depto)} registro(s)")
+    worksheet = workbook.add_worksheet(nome_aba)
     
-    # ========== AJUSTAR LARGURA DAS COLUNAS ==========
-    ws.column_dimensions['A'].width = 40
-    ws.column_dimensions['B'].width = 20
-    ws.column_dimensions['C'].width = 20
-    ws.column_dimensions['D'].width = 45
-    ws.column_dimensions['E'].width = 25
+    print(f"✅ Criando aba: {nome_aba}")
     
-    linha = 1  # COMEÇAR NA LINHA 1
+    # ========== CONFIGURAÇÃO DAS COLUNAS ==========
+    worksheet.set_column('A:A', 40)
+    worksheet.set_column('B:B', 20)
+    worksheet.set_column('C:C', 20)
+    worksheet.set_column('D:D', 45)
+    worksheet.set_column('E:E', 25)
     
-    # ========== INSERIR LOGO (se existir) ==========
-    if logo_existe:
-        try:
-            img = Image(caminho_logo)
-            img.width = 60
-            img.height = 60
-            img.anchor = 'A1'
-            ws.add_image(img)
-            ws.row_dimensions[1].height = 50
-        except Exception as e:
-            print(f"   ⚠️ Erro ao inserir logo: {e}")
+    linha = 0
     
-    # Se tem logo, o título começa na linha 2, senão na linha 1
-    if logo_existe:
-        linha_titulo = 2
-    else:
-        linha_titulo = 1
-    
-    # Agrupar por responsável dentro do departamento
+    # Agrupar por responsável
     responsaveis = dados_depto['Nome do responsável'].unique()
     
     for responsavel in responsaveis:
         dados_resp = dados_depto[dados_depto['Nome do responsável'] == responsavel]
         primeiro = dados_resp.iloc[0]
         
-        # ========== TÍTULO PRINCIPAL NA LINHA CORRETA ==========
-        ws.merge_cells(f'A{linha_titulo}:E{linha_titulo}')
-        celula_titulo = ws.cell(linha_titulo, 1, "Cadastro de Rede")
-        celula_titulo.font = titulo_font
-        celula_titulo.alignment = Alignment(horizontal='center', vertical='center')
-        celula_titulo.fill = cinza_claro
-        celula_titulo.border = sem_borda
-        ws.row_dimensions[linha_titulo].height = 40
+        # ========== LINHA DO TÍTULO ==========
+        worksheet.set_row(linha, 70)
         
-        linha = linha_titulo + 2  # Pular 2 linhas após o título
+        # ========== TÍTULO CENTRALIZADO ==========
+        worksheet.merge_range(linha, 0, linha, 4, "CADASTRO DE REDE", titulo_format)
+        
+        # ========== INSERIR LOGO COM TAMANHO FIXO ==========
+        if logo_existe:
+            try:
+                # ===== TAMANHO DESEJADO (220x70) =====
+                largura_desejada = 220
+                altura_desejada = 70
+                
+                # Calcular escala para manter proporção
+                with PILImage.open(caminho_logo) as img:
+                    largura_original, altura_original = img.size
+                
+                escala_largura = largura_desejada / largura_original
+                escala_altura = altura_desejada / altura_original
+                escala = min(escala_largura, escala_altura)
+                
+                # Margens
+                margin_left = 15
+                margin_top = 10
+                
+                worksheet.insert_image(
+                    linha, 0, 
+                    caminho_logo,
+                    {
+                        'x_offset': margin_left,
+                        'y_offset': margin_top,
+                        'x_scale': escala,
+                        'y_scale': escala,
+                        'object_position': 1
+                    }
+                )
+                
+                print(f"   ✅ Logo inserida - Tamanho: ~{largura_desejada}x{altura_desejada}")
+                print(f"   ✅ Margens - Left: {margin_left}px, Top: {margin_top}px")
+                
+            except Exception as e:
+                print(f"   ⚠️ Erro ao inserir logo: {e}")
+        
+        linha += 3
         
         # ========== DADOS DO RESPONSÁVEL ==========
-        ws.merge_cells(f'A{linha}:E{linha}')
-        celula_subtitulo = ws.cell(linha, 1, "Dados do Responsável do Setor")
-        celula_subtitulo.font = subtitulo_font
-        celula_subtitulo.alignment = Alignment(horizontal='center')
-        celula_subtitulo.fill = cinza_escuro
-        celula_subtitulo.border = borda_completa
+        worksheet.merge_range(linha, 0, linha, 4, "DADOS DO RESPONSÁVEL DO SETOR", subtitulo_format)
         linha += 1
         
         dados_responsavel = [
@@ -135,46 +177,24 @@ for depto in departamentos:
         ]
         
         for campo, valor in dados_responsavel:
-            celula_campo = ws.cell(linha, 1, campo)
-            celula_campo.font = bold_font
-            celula_campo.border = borda_completa
-            celula_campo.fill = branco
-            
-            celula_valor = ws.cell(linha, 2, valor)
-            celula_valor.font = normal_font
-            celula_valor.border = borda_completa
-            celula_valor.fill = branco
-            
-            for col in range(3, 6):
-                celula_vazia = ws.cell(linha, col, "")
-                celula_vazia.border = borda_completa
-                celula_vazia.fill = branco
-            
+            worksheet.write(linha, 0, campo, campo_format)
+            worksheet.write(linha, 1, valor, valor_format)
+            worksheet.write(linha, 2, "", valor_format)
+            worksheet.write(linha, 3, "", valor_format)
+            worksheet.write(linha, 4, "", valor_format)
             linha += 1
         
         linha += 1
         
         # ========== TABELA DE SERVIDORES ==========
-        ws.merge_cells(f'A{linha}:E{linha}')
-        celula_subtitulo = ws.cell(linha, 1, "Dados dos Servidores")
-        celula_subtitulo.font = subtitulo_font
-        celula_subtitulo.alignment = Alignment(horizontal='center')
-        celula_subtitulo.fill = cinza_escuro
-        celula_subtitulo.border = borda_completa
+        worksheet.merge_range(linha, 0, linha, 4, "DADOS DOS SERVIDORES", subtitulo_format)
         linha += 1
         
-        # Cabeçalho
         cabecalhos = ["Nome", "Matrícula", "Login de Rede", "E-mail Institucional", "Coordenação"]
-        for col, cab in enumerate(cabecalhos, 1):
-            celula = ws.cell(linha, col, cab)
-            celula.font = bold_font
-            celula.alignment = Alignment(horizontal='center')
-            celula.fill = cinza_claro
-            celula.border = borda_completa
-        
+        for col, cab in enumerate(cabecalhos):
+            worksheet.write(linha, col, cab, cabecalho_format)
         linha += 1
         
-        # Dados dos servidores
         for _, row in dados_resp.iterrows():
             valores = [
                 row['Nome do servidor'],
@@ -183,21 +203,19 @@ for depto in departamentos:
                 row['E-mail institucional'],
                 row['Coordenação do servidor']
             ]
-            
-            for col, val in enumerate(valores, 1):
-                celula = ws.cell(linha, col, val)
-                celula.font = normal_font
-                celula.border = borda_completa
-                celula.fill = branco
-            
+            for col, val in enumerate(valores):
+                worksheet.write(linha, col, val, valor_format)
             linha += 1
         
-        # Espaço entre responsáveis
-        linha_titulo = linha + 3
-        linha = linha_titulo
+        linha += 3
 
 # Salvar arquivo
-wb.save("cadastro_rede_por_departamento.xlsx")
-print("\n✅ Arquivo criado: cadastro_rede_por_departamento.xlsx")
-print(f"📊 Total de abas criadas: {len(departamentos)}")
-print("🎨 CADASTRO DE REDE na primeira linha (ou segunda se tiver logo)")
+writer.close()
+
+print(f"\n{'='*50}")
+print(f"✅ SUCESSO! Arquivo: Cadastro_de_rede.xlsx")
+print(f"{'='*50}")
+print(f"\n🎨 Configurações:")
+print(f"   - Tamanho da imagem: ~220x70 pixels")
+print(f"   - Margem Left: 15px")
+print(f"   - Margem Top: 10px")
