@@ -1,104 +1,166 @@
-# Cadastro de Rede - Estruturação de Formulários
+# CADASTRO DE REDE - GUIA RÁPIDO
 
-Script em Python para organizar automaticamente as respostas exportadas do Microsoft Forms e gerar uma planilha estruturada com os dados de responsáveis e servidores.
+Script em Python para organizar automaticamente as respostas exportadas do Microsoft Forms 
+e gerar uma planilha estruturada com os dados de responsáveis e servidores.
 
-## Requisitos
+================================================================================
+                              GUIA DE INSTALAÇÃO
+================================================================================
 
-* Python 3.12 ou superior
-* Bibliotecas Python:
+1. REQUISITOS DO SISTEMA
+--------------------------------------------------------------------------------
+- Windows, Linux ou MacOS
+- Python 3.8 ou superior instalado
+- Conexão com internet (apenas para instalar as dependências)
 
-  * pandas
-  * openpyxl
-  * numpy
+2. VERIFICAR SE O PYTHON ESTÁ INSTALADO
+--------------------------------------------------------------------------------
+Abra o terminal (Prompt de Comando, PowerShell ou Terminal) e digite:
 
-## Configuração do ambiente
+   python --version
 
-1. Clone ou baixe o projeto.
+Se aparecer algo como "Python 3.8.x" ou superior, está ok.
+Se não estiver instalado, baixe em: https://www.python.org/downloads/
 
-2. Entre na pasta do projeto:
+3. BAIXAR O PROJETO
+--------------------------------------------------------------------------------
+Crie uma pasta para o projeto, exemplo: C:\cadastro_rede
+Coloque o arquivo do script (ex: cadastro.py) dentro desta pasta.
 
-```
-cd restruc
-```
+4. ABRIR O TERMINAL NA PASTA DO PROJETO
+--------------------------------------------------------------------------------
+Windows: Abra a pasta, clique no campo de endereço, digite "cmd" e pressione Enter
+Linux/Mac: Abra o terminal e navegue até a pasta com o comando "cd"
 
-3. Crie o ambiente virtual:
+5. CRIAR AMBIENTE VIRTUAL (recomendado)
+--------------------------------------------------------------------------------
+Digite no terminal:
 
-```
-python -m venv venv
-```
+   python -m venv venv
 
-4. Ative o ambiente virtual:
+6. ATIVAR O AMBIENTE VIRTUAL
+--------------------------------------------------------------------------------
+Windows (Prompt de Comando):
+   venv\Scripts\activate.bat
 
 Windows (PowerShell):
+   venv\Scripts\activate
 
-```
+Linux/Mac:
+   source venv/bin/activate
+
+Quando ativado, aparecerá (venv) no início da linha do terminal.
+
+7. INSTALAR AS DEPENDÊNCIAS
+--------------------------------------------------------------------------------
+Com o ambiente virtual ativado, digite:
+
+   pip install pandas openpyxl numpy xlsxwriter Pillow
+
+Aguarde a instalação de todas as bibliotecas.
+
+8. PREPARAR OS ARQUIVOS NECESSÁRIOS
+--------------------------------------------------------------------------------
+Na mesma pasta do script, você precisa ter:
+
+   ✅ OBRIGATÓRIO:
+      - Dados do Responsável do Setor.xlsx (exportado do Microsoft Forms)
+   
+   ❌ OPCIONAL:
+      - niteroi.png (logo que aparece no cabeçalho da planilha)
+
+================================================================================
+                              COMO RODAR O PROJETO
+================================================================================
+
+1. EXPORTAR OS DADOS DO MICROSOFT FORMS
+--------------------------------------------------------------------------------
+- Acesse seu formulário no Microsoft Forms
+- Clique em "Respostas" → "Abrir no Excel" (ou "Ver no Excel")
+- Salve o arquivo com o nome: Dados do Responsável do Setor.xlsx
+- Mova este arquivo para a mesma pasta do script
+
+2. EXECUTAR O SCRIPT
+--------------------------------------------------------------------------------
+No terminal (com o ambiente virtual ativado), digite:
+
+   python cadastro.py
+
+(Substitua "cadastro.py" pelo nome real do seu arquivo)
+
+3. ACOMPANHAR A EXECUÇÃO
+--------------------------------------------------------------------------------
+O script mostrará mensagens como:
+
+   📁 Arquivos encontrados na pasta:
+      - cadastro.py
+      - Dados do Responsável do Setor.xlsx
+   
+   📋 Colunas encontradas:
+     1. 'Id'
+     2. 'Hora de início'
+     ...
+   
+   🎯 Colunas de servidor encontradas:
+     nome: 10 colunas
+   
+   🔄 Normalizando dados...
+   ✅ Dados normalizados: XX servidores encontrados
+   
+   📊 Departamentos: ['infra', 'dti', ...]
+   ✅ Criando aba: infra com X servidores
+   ...
+   
+   ✅ Arquivo gerado: cadastro_rede.xlsx
+
+4. RESULTADO FINAL
+--------------------------------------------------------------------------------
+Será criado um arquivo chamado:
+   cadastro_rede.xlsx
+
+Este arquivo contém:
+- Uma aba para cada departamento
+- Dados completos do responsável
+- Lista de todos os servidores cadastrados
+
+================================================================================
+                          SOLUÇÃO DE PROBLEMAS COMUNS
+================================================================================
+
+PROBLEMA: "python não é reconhecido"
+SOLUÇÃO: Instale o Python e marque a opção "Add Python to PATH"
+
+PROBLEMA: "Arquivo não encontrado"
+SOLUÇÃO: Verifique se o arquivo se chama exatamente "Dados do Responsável do Setor.xlsx"
+
+PROBLEMA: Erro "xlsxwriter not found"
+SOLUÇÃO: pip install xlsxwriter
+
+PROBLEMA: Erro "PIL not found"
+SOLUÇÃO: pip install Pillow
+
+PROBLEMA: Apenas 1 servidor aparece
+SOLUÇÃO: Verifique se as colunas no Excel estão como "Nome do servidor1", "Nome do servidor2", etc.
+
+PROBLEMA: Erro com a logo
+SOLUÇÃO: Remova o arquivo niteroi.png ou corrija a imagem
+
+================================================================================
+                          COMANDOS RÁPIDOS (RESUMO)
+================================================================================
+
+# Criar ambiente virtual
+python -m venv venv
+
+# Ativar (Windows PowerShell)
 venv\Scripts\activate
-```
 
-5. Instale as dependências:
+# Instalar dependências
+pip install pandas openpyxl numpy xlsxwriter Pillow
 
-```
-pip install pandas openpyxl numpy
-```
+# Executar
+python cadastro.py
 
-## Como usar
-
-1. Exporte as respostas do Microsoft Forms para Excel.
-
-2. Coloque o arquivo na pasta do projeto.
-
-Exemplo:
-
-```
-respostas.xlsx
-```
-
-3. Execute o script:
-
-```
-python restruc.py
-```
-
-## Resultado
-
-O script irá gerar automaticamente um novo arquivo Excel organizado:
-
-```
-cadastro_rede_organizado.xlsx
-```
-
-A planilha conterá:
-
-* Responsável do setor
-* Matrícula
-* Login de rede
-* Email institucional
-* Coordenação
-* Dados dos servidores
-
-## Estrutura esperada do formulário
-
-O formulário deve conter duas seções:
-
-### Dados do Responsável
-
-* Nome do responsável
-* Matrícula
-* Login de rede
-* Email institucional
-* Coordenação
-
-### Dados dos Servidores
-
-* Nome do servidor
-* Matrícula do servidor
-* Login de rede
-* Email institucional
-* Coordenação do servidor
-
-## Tecnologias utilizadas
-
-* Python
-* pandas
-* openpyxl
-* Microsoft Forms
+================================================================================
+                                FIM DO GUIA
+================================================================================

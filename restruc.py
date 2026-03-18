@@ -320,4 +320,4 @@ for depto in departamentos:
 
 # Salvar arquivo
 writer.close()
-print(f"\n✅ Arquivo gerado: cadastro_rede_tamanho_fixo.xlsx")
+print(f"\n✅ Arquivo gerado: cadastro_rede.xlsx")
