@@ -128,8 +128,8 @@ for depto in departamentos:
         if logo_existe:
             try:
                 # ===== TAMANHO DESEJADO (220x70) =====
-                largura_desejada = 220
-                altura_desejada = 70
+                largura_desejada = 720
+                altura_desejada = 390
                 
                 # Calcular escala para manter proporção
                 with PILImage.open(caminho_logo) as img:
@@ -154,9 +154,7 @@ for depto in departamentos:
                         'object_position': 1
                     }
                 )
-                
-                print(f"   ✅ Logo inserida - Tamanho: ~{largura_desejada}x{altura_desejada}")
-                print(f"   ✅ Margens - Left: {margin_left}px, Top: {margin_top}px")
+            
                 
             except Exception as e:
                 print(f"   ⚠️ Erro ao inserir logo: {e}")
@@ -211,11 +209,3 @@ for depto in departamentos:
 
 # Salvar arquivo
 writer.close()
-
-print(f"\n{'='*50}")
-print(f"✅ SUCESSO! Arquivo: Cadastro_de_rede.xlsx")
-print(f"{'='*50}")
-print(f"\n🎨 Configurações:")
-print(f"   - Tamanho da imagem: ~220x70 pixels")
-print(f"   - Margem Left: 15px")
-print(f"   - Margem Top: 10px")
