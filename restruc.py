@@ -26,28 +26,16 @@ for i, col in enumerate(df.columns):
 
 # ========== FUNÇÃO PARA ENCONTRAR TODAS AS COLUNAS DE SERVIDORES ==========
 def encontrar_colunas_servidor(df):
-    """Encontra todas as colunas relacionadas a servidores"""
+    """Encontra todas as colunas relacionadas a servidores (até 15 servidores)"""
     
     # Padrões de colunas (primeiro servidor não tem número)
+    # Agora suporta até 15 servidores (0 a 14, sendo 0 sem número)
     padroes = {
-        'nome': ['Nome do servidor', 'Nome do servidor1', 'Nome do servidor2', 'Nome do servidor3', 
-                 'Nome do servidor4', 'Nome do servidor5', 'Nome do servidor6', 'Nome do servidor7', 
-                 'Nome do servidor8', 'Nome do servidor9'],
-        'matricula': ['Matrícula do servidor', 'Matrícula do servidor1', 'Matrícula do servidor2', 
-                      'Matrícula do servidor3', 'Matrícula do servidor4', 'Matrícula do servidor5', 
-                      'Matrícula do servidor6', 'Matrícula do servidor7', 'Matrícula do servidor8', 
-                      'Matrícula do servidor9'],
-        'login': ['Login de rede', 'Login de rede1', 'Login de rede2', 'Login de rede3', 
-                  'Login de rede4', 'Login de rede5', 'Login de rede6', 'Login de rede7', 
-                  'Login de rede8', 'Login de rede9'],
-        'email': ['E-mail institucional', 'E-mail institucional1', 'E-mail institucional2', 
-                  'E-mail institucional3', 'E-mail institucional4', 'E-mail institucional5', 
-                  'E-mail institucional6', 'E-mail institucional7', 'E-mail institucional8', 
-                  'E-mail institucional9'],
-        'coordenacao': ['Coordenação do servidor', 'Coordenação do servidor1', 'Coordenação do servidor2', 
-                        'Coordenação do servidor3', 'Coordenação do servidor4', 'Coordenação do servidor5', 
-                        'Coordenação do servidor6', 'Coordenação do servidor7', 'Coordenação do servidor8', 
-                        'Coordenação do servidor9']
+        'nome': ['Nome do servidor'] + [f'Nome do servidor{i}' for i in range(1, 15)],
+        'matricula': ['Matrícula do servidor'] + [f'Matrícula do servidor{i}' for i in range(1, 15)],
+        'login': ['Login de rede'] + [f'Login de rede{i}' for i in range(1, 15)],
+        'email': ['E-mail institucional'] + [f'E-mail institucional{i}' for i in range(1, 15)],
+        'coordenacao': ['Coordenação do servidor'] + [f'Coordenação do servidor{i}' for i in range(1, 15)]
     }
     
     # Verificar quais colunas realmente existem no DataFrame
@@ -56,6 +44,16 @@ def encontrar_colunas_servidor(df):
         colunas_existentes[tipo] = [col for col in lista_colunas if col in df.columns]
     
     return colunas_existentes
+
+# ========== FUNÇÃO PARA OBTER SUBSSECRETARIA ==========
+def obter_subsecretaria(row):
+    """Retorna o nome da subsecretaria se a resposta for Sim"""
+    subordinado = row.get('Este departamento está subordinado à alguma Subsecretaria?')
+    
+    # Verificar se a resposta é "Sim"
+    if pd.notna(subordinado) and str(subordinado).strip().lower() in ['sim', 'yes', 's', 'sim']:
+        return row.get('Informe o nome da Subsecretaria')
+    return None
 
 # ========== ENCONTRAR COLUNAS DE SERVIDOR ==========
 colunas_servidor = encontrar_colunas_servidor(df)
@@ -70,13 +68,18 @@ print("\n🔄 Normalizando dados...")
 linhas_normalizadas = []
 
 for idx, row in df.iterrows():
+    # Obter subsecretaria (se houver)
+    subsecretaria = obter_subsecretaria(row)
+    
     # Dados do responsável (constantes para esta linha)
     dados_base = {
         'Nome do responsável': row.get('Nome do responsável'),
         'Matrícula do responsável': row.get('Matrícula do responsável'),
         'Login de rede do responsável': row.get('Login de rede do responsável'),
         'E-mail institucional do responsável': row.get('E-mail institucional do responsável'),
-        'Departamento': row.get('Departamento')
+        'Departamento': row.get('Departamento'),
+        'Subordinado à Subsecretaria?': row.get('Este departamento está subordinado à alguma Subsecretaria?'),
+        'Subsecretaria': subsecretaria
     }
     
     # Verificar se tem pelo menos um servidor
@@ -137,17 +140,23 @@ if len(df_normalizado) == 0:
     print("⚠️ Nenhum servidor encontrado na normalização. Usando DataFrame original.")
     df_normalizado = df
     # No DataFrame original, pegar apenas o primeiro servidor
-    df_normalizado = df_normalizado[['Nome do responsável', 'Matrícula do responsável', 
-                                      'Login de rede do responsável', 'E-mail institucional do responsável',
-                                      'Departamento', 'Nome do servidor', 'Matrícula do servidor',
-                                      'Login de rede', 'E-mail institucional', 'Coordenação do servidor']].copy()
+    colunas_originais = ['Nome do responsável', 'Matrícula do responsável', 
+                          'Login de rede do responsável', 'E-mail institucional do responsável',
+                          'Departamento', 'Este departamento está subordinado à alguma Subsecretaria?',
+                          'Informe o nome da Subsecretaria',
+                          'Nome do servidor', 'Matrícula do servidor',
+                          'Login de rede', 'E-mail institucional', 'Coordenação do servidor']
+    
+    # Filtrar apenas colunas que existem
+    colunas_existentes = [col for col in colunas_originais if col in df_normalizado.columns]
+    df_normalizado = df_normalizado[colunas_existentes].copy()
     df_normalizado = df_normalizado.dropna(subset=['Nome do servidor'])
 
 # ========== CRIAR WORKBOOK COM XLSXWRITER ==========
 writer = pd.ExcelWriter('cadastro_rede.xlsx', engine='xlsxwriter')
 workbook = writer.book
 
-# ========== ESTILOS (mantidos iguais) ==========
+# ========== ESTILOS ==========
 titulo_format = workbook.add_format({
     'font_name': 'Calibri',
     'font_size': 24,
@@ -218,11 +227,11 @@ for depto in departamentos:
     print(f"✅ Criando aba: {nome_aba} com {len(dados_depto)} servidores")
     
     # ========== CONFIGURAÇÃO DAS COLUNAS ==========
-    worksheet.set_column('A:A', 40)
-    worksheet.set_column('B:B', 20)
-    worksheet.set_column('C:C', 20)
-    worksheet.set_column('D:D', 45)
-    worksheet.set_column('E:E', 25)
+    worksheet.set_column('A:A', 40)   # Campo
+    worksheet.set_column('B:B', 35)   # Valor
+    worksheet.set_column('C:C', 20)   # Vazio
+    worksheet.set_column('D:D', 45)   # Vazio
+    worksheet.set_column('E:E', 25)   # Vazio
     
     linha = 0
     
@@ -276,14 +285,21 @@ for depto in departamentos:
         worksheet.merge_range(linha, 0, linha, 4, "DADOS DO RESPONSÁVEL DO SETOR", subtitulo_format)
         linha += 1
         
+        # Montar lista de dados do responsável
         dados_responsavel = [
             ("Nome:", primeiro['Nome do responsável']),
             ("Matrícula:", primeiro['Matrícula do responsável']),
             ("Login de Rede:", primeiro['Login de rede do responsável']),
             ("E-mail institucional:", primeiro['E-mail institucional do responsável']),
-            ("Departamento:", primeiro['Departamento']),
-            ("Quantidade de servidores:", len(dados_resp))
+            ("Departamento:", primeiro['Departamento'])
         ]
+        
+        # Adicionar subsecretaria se existir e for Sim
+        if 'Subsecretaria' in primeiro and pd.notna(primeiro['Subsecretaria']):
+            dados_responsavel.append(("Subsecretaria:", primeiro['Subsecretaria']))
+        
+        # Mostrar APENAS a quantidade de servidores cadastrados (que já estão na tabela)
+        dados_responsavel.append(("Quantidade de servidores cadastrados:", len(dados_resp)))
         
         for campo, valor in dados_responsavel:
             worksheet.write(linha, 0, campo, campo_format)
