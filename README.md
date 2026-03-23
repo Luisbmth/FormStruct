@@ -161,6 +161,9 @@ pip install pandas openpyxl numpy xlsxwriter Pillow
 # Executar
 python cadastro.py
 
+
+venv\Scripts\activate
+python restruc.py
 ================================================================================
                                 FIM DO GUIA
 ================================================================================

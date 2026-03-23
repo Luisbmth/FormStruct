@@ -291,15 +291,13 @@ for depto in departamentos:
             ("Matrícula:", primeiro['Matrícula do responsável']),
             ("Login de Rede:", primeiro['Login de rede do responsável']),
             ("E-mail institucional:", primeiro['E-mail institucional do responsável']),
-            ("Departamento:", primeiro['Departamento'])
+            ("Departamento:", primeiro['Departamento']),
+            ("Quantidade de servidores cadastrados:", len(dados_resp))
         ]
         
         # Adicionar subsecretaria se existir e for Sim
         if 'Subsecretaria' in primeiro and pd.notna(primeiro['Subsecretaria']):
             dados_responsavel.append(("Subsecretaria:", primeiro['Subsecretaria']))
-        
-        # Mostrar APENAS a quantidade de servidores cadastrados (que já estão na tabela)
-        dados_responsavel.append(("Quantidade de servidores cadastrados:", len(dados_resp)))
         
         for campo, valor in dados_responsavel:
             worksheet.write(linha, 0, campo, campo_format)
